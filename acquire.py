@@ -24,26 +24,41 @@ def sql_query(db='None', query='None'):
     """ This is a function to easily and quickly create a SQL query in python.
        db - String name of database which to access
        query - SQL query to run."""
-    if db == 'None':  # Will alert you that no database was specified
-        print('Database not specified.')
-    elif query == 'None':  # Will alert you that no query was specified
-        print('No query!')
-    else:
-        db_url = get_connection(db)
-        df = pd.read_sql(query, db_url)
-        return df  # Returns df from the query that was input
+    db_url = get_connection(db)
+    df = pd.read_sql(query, db_url)
+    return df  # Returns df from the query that was input
 
 
 def get_opds(dt=True, ind=True, sor=True):
     filename = 'opsd_germany_daily.csv'
     if os.path.isfile(filename):
-        return pd.read_csv(filename)  # Returns local file if there is one
+        df = pd.read_csv(filename)
+        df = prep.create_index(df, 'date', datetime=dt, index=ind, sort=sor)  # Re-index df with datetime object
+        return df  # Returns local file if there is one
     else:
-        power = pd.read_csv('https://raw.githubusercontent.com/jenfly/opsd/master/opsd_germany_daily.csv')
-        power.columns = power.columns.str.lower()  # Lower case column names
-        power.columns = power.columns.str.replace('+', '_')  # Replace '+' with '_'
-        power = prep.create_index(power, 'date', datetime=dt, index=ind, sort=sor)  # Re-index df with datetime object
-        power = power.fillna(0)  # Fill nulls with 0
-        power.wind_solar = power.wind + power.solar  # Recreate wind_solar column
-        power.to_csv('opsd_germany_daily.csv')  # Save to .csv file
-        return power  # Return df
+        df = pd.read_csv('https://raw.githubusercontent.com/jenfly/opsd/master/opsd_germany_daily.csv')
+        df.columns = df.columns.str.lower()  # Lower case column names
+        df.columns = df.columns.str.replace('+', '_')  # Replace '+' with '_'
+        df = prep.create_index(df, 'date', datetime=dt, index=ind, sort=sor)  # Re-index df with datetime object
+        df = df.fillna(0)  # Fill nulls with 0
+        df.wind_solar = df.wind + df.solar  # Recreate wind_solar column
+        df.to_csv(filename)  # Save to .csv file
+        return df  # Return df
+
+
+def get_items(dt=True, ind=True, sor=True):
+    filename = 'items.csv'
+    if os.path.isfile(filename):
+        df = pd.read_csv(filename)  # Returns local file if there is one
+        df = prep.create_index(df, 'sale_date', datetime=dt, index=ind, sort=sor)  # Re-index df with datetime object
+        return df  # Returns local file if there is one
+    else:
+        query = ''' SELECT sale_date, sale_amount, item_brand, item_name, item_price, 
+                    store_address, store_zipcode, store_city, store_state  
+                    FROM sales AS s
+                    LEFT JOIN items as i USING(item_id)
+                    LEFT JOIN stores as st USING(store_id)'''
+        df = sql_query('tsa_item_demand', query)
+        df = prep.create_index(df, 'sale_date', datetime=dt, index=ind, sort=sor)  # Re-index df with datetime object
+        df.to_csv(filename)  # Save to .csv file
+        return df  # Return df

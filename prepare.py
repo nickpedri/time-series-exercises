@@ -1,7 +1,6 @@
 import pandas as pd
 
 
-
 def create_index(df_one, date_col, datetime=True, index=True, sort=True):
     """ This function will re-index a DataFrame with the specified date column.
         df_one - DataFrame to alter.
@@ -34,3 +33,25 @@ def add_cols(df_one, name_dd=True, name_mm=True, year=True):
     if year:
         df['year'] = df.index.year
     return df
+
+
+# noinspecDefaultArgument
+def splitter(df, start=None, train_end=None, val_start=None, val_end=None,
+             test_start=None, end=None, method='iloc', ratio=None):
+    if method == 'loc':
+        train = df.loc[start: train_end]
+        val = df.loc[val_start: val_end]
+        test = df.loc[test_start: end]
+        print(f'train {train.shape}, val {val.shape}, test {test.shape}')
+        return train, val, test
+    if method == 'iloc':
+        if ratio is None:
+            ratio = [60, 20, 20]
+        length = len(df)
+        tr = round((ratio[0]/100) * length)
+        v = round((ratio[1]/100) * length) + tr
+        train = df.iloc[start: tr-1]
+        val = df.iloc[tr: v-1]
+        test = df.iloc[v: end]
+        print(f'train {train.shape}, val {val.shape}, test {test.shape}')
+        return train, val, test
