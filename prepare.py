@@ -36,12 +36,12 @@ def add_cols(df_one, name_dd=True, name_mm=True, year=True):
 
 
 # noinspecDefaultArgument
-def splitter(df, start=None, train_end=None, val_start=None, val_end=None,
-             test_start=None, end=None, method='iloc', ratio=None):
+def splitter(df, s1=None, s2=None, s3=None, s4=None,
+             s5=None, s6=None, method='iloc', ratio=None):
     if method == 'loc':
-        train = df.loc[start: train_end]
-        val = df.loc[val_start: val_end]
-        test = df.loc[test_start: end]
+        train = df.loc[s1: s2]
+        val = df.loc[s3: s4]
+        test = df.loc[s5: s6]
         print(f'train {train.shape}, val {val.shape}, test {test.shape}')
         return train, val, test
     if method == 'iloc':
@@ -50,8 +50,8 @@ def splitter(df, start=None, train_end=None, val_start=None, val_end=None,
         length = len(df)
         tr = round((ratio[0]/100) * length)
         v = round((ratio[1]/100) * length) + tr
-        train = df.iloc[start: tr-1]
+        train = df.iloc[s1: tr-1]
         val = df.iloc[tr: v-1]
-        test = df.iloc[v: end]
+        test = df.iloc[v: s6]
         print(f'train {train.shape}, val {val.shape}, test {test.shape}')
         return train, val, test
